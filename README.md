@@ -41,3 +41,27 @@ Most prop evaluations fail because intraday unrealized profit wicks ratchet the 
 
 Free and open-source utility provided by **TradeGuard Systems** (`tradeguardsystems.com`).  
 Direct inquiries: `director@tradeguardsystems.com`
+---
+
+### Installation & Deployment
+
+#### TradingView (Pine Script v5):
+1. Open `TradeGuardTrailingFloor.pine` above and copy the script.
+2. In TradingView, open **Pine Editor** (`Alt + E` or bottom panel).
+3. Paste the code and click **Add to chart**.
+
+#### NinjaTrader 8:
+1. Download `TradeGuardTrailingFloor.cs`.
+2. Open NinjaTrader 8 > Tools > NinjaScript Editor.
+3. Import into the `Indicators` directory and press `F5` to compile.
+
+#### MetaTrader 5:
+1. Download `TradeGuardTrailingFloor.mq5`.
+2. Open MT5 > File > Open Data Folder > `MQL5` > `Indicators`.
+3. Paste the file, right-click Navigator > Refresh, and attach to your chart.
+
+---
+
+### Resources & Direct Access
+Free utility from **TradeGuard Systems** (`https://tradeguardsystems.com`).  
+Direct inquiries: `director@tradeguardsystems.com`
