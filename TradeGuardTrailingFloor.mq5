@@ -1,74 +1,86 @@
-#region Using declarations
-using System;
-using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
-using System.Windows.Media;
-using System.Xml.Serialization;
-using NinjaTrader.Cbi;
-using NinjaTrader.Gui;
-using NinjaTrader.Gui.Chart;
-using NinjaTrader.Data;
-#endregion
+//+------------------------------------------------------------------+
+//|                                       TradeGuardTrailingFloor.mq5 |
+//|                  TradeGuard Systems - https://tradeguardsystems.com |
+//+------------------------------------------------------------------+
+#property copyright   "TradeGuard Systems"
+#property link        "https://tradeguardsystems.com"
+#property version     "1.00"
+#property description "Price-based trailing drawdown floor: tracks the chart's high-water mark and plots the floor a fixed dollar distance below it."
+#property indicator_chart_window
+#property indicator_buffers 2
+#property indicator_plots   2
 
-namespace NinjaTrader.NinjaScript.Indicators
-{
-    public class TradeGuardTrailingFloor : Indicator
-    {
-        private double highWaterMark = double.MinValue;
-        private double trailingFloor = 0;
+#property indicator_label1  "TrailingFloor"
+#property indicator_type1   DRAW_LINE
+#property indicator_color1  clrCrimson
+#property indicator_width1  2
 
-        [NinjaScriptProperty]
-        [Range(100, 10000)]
-        [Display(Name = "Trailing Drawdown ($)", Description = "Max trailing drawdown dollar value", Order = 1, GroupName = "Parameters")]
-        public double MaxTrailingDrawdown { get; set; }
+#property indicator_label2  "HighWaterMark"
+#property indicator_type2   DRAW_LINE
+#property indicator_color2  clrRoyalBlue
+#property indicator_width2  1
 
-        [NinjaScriptProperty]
-        [Range(1, 100)]
-        [Display(Name = "Tick Value ($)", Description = "Dollar value per full tick", Order = 2, GroupName = "Parameters")]
-        public double TickValue { get; set; }
+input double InpMaxTrailingDrawdown = 2000.0; // Trailing Drawdown ($)
+input double InpLots                = 1.0;    // Position Size (lots)
+input double InpTickValue           = 0.0;    // Tick Value per 1 lot ($), 0 = read from symbol
 
-        protected override void OnStateChange()
-        {
-            if (State == State.SetDefaults)
-            {
-                Description = "Plots the dynamic trailing drawdown floor based on intra-trade peak equity.";
-                Name = "TradeGuardTrailingFloor";
-                Calculate = Calculate.OnPriceChange;
-                IsOverlay = true;
-                DisplayInDataBox = true;
+double FloorBuffer[];
+double HwmBuffer[];
 
-                MaxTrailingDrawdown = 2000;
-                TickValue = 5.0; // NQ tick value default ($5 per 0.25 pt / $20 per pt)
+int OnInit()
+  {
+   if(InpMaxTrailingDrawdown <= 0 || InpLots <= 0 || InpTickValue < 0)
+      return(INIT_PARAMETERS_INCORRECT);
 
-                AddPlot(Brushes.Crimson, "TrailingFloor");
-                AddPlot(Brushes.RoyalBlue, "HighWaterMark");
-            }
-        }
+   SetIndexBuffer(0, FloorBuffer, INDICATOR_DATA);
+   SetIndexBuffer(1, HwmBuffer, INDICATOR_DATA);
+   IndicatorSetString(INDICATOR_SHORTNAME, "TradeGuard Trailing Floor");
+   IndicatorSetInteger(INDICATOR_DIGITS, _Digits);
+   return(INIT_SUCCEEDED);
+  }
 
-        protected override void OnBarUpdate()
-        {
-            if (CurrentBar < 1)
-            {
-                highWaterMark = Close[0];
-                trailingFloor = highWaterMark - (MaxTrailingDrawdown / TickValue * TickSize);
-                Values[0][0] = trailingFloor;
-                Values[1][0] = highWaterMark;
-                return;
-            }
+// Converts the dollar drawdown into a price distance for the configured position size.
+double BufferInPrice()
+  {
+   double tickSize  = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE);
+   double tickValue = InpTickValue > 0 ? InpTickValue : SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_VALUE);
+   if(tickSize <= 0 || tickValue <= 0)
+      return(0);
+   return(InpMaxTrailingDrawdown / (tickValue * InpLots) * tickSize);
+  }
 
-            if (High[0] > highWaterMark)
-            {
-                highWaterMark = High[0];
-            }
+int OnCalculate(const int rates_total,
+                const int prev_calculated,
+                const datetime &time[],
+                const double &open[],
+                const double &high[],
+                const double &low[],
+                const double &close[],
+                const long &tick_volume[],
+                const long &volume[],
+                const int &spread[])
+  {
+   if(rates_total < 1)
+      return(0);
 
-            double calculatedFloor = highWaterMark - (MaxTrailingDrawdown / TickValue * TickSize);
-            if (calculatedFloor > trailingFloor)
-            {
-                trailingFloor = calculatedFloor;
-            }
+   double buffer = BufferInPrice();
+   if(buffer <= 0)
+      return(0);
 
-            Values[0][0] = trailingFloor;
-            Values[1][0] = highWaterMark;
-        }
-    }
-}
+   if(prev_calculated == 0)
+     {
+      HwmBuffer[0]   = high[0];
+      FloorBuffer[0] = high[0] - buffer;
+     }
+
+   int start = MathMax(prev_calculated - 1, 1);
+   for(int i = start; i < rates_total; i++)
+     {
+      double hwm     = MathMax(HwmBuffer[i - 1], high[i]);
+      HwmBuffer[i]   = hwm;
+      FloorBuffer[i] = MathMax(FloorBuffer[i - 1], hwm - buffer);
+     }
+
+   return(rates_total);
+  }
+//+------------------------------------------------------------------+
