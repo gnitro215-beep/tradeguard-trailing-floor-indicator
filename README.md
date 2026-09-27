@@ -1,67 +1,83 @@
 # TradeGuard Trailing Drawdown Floor & Account Shield
 
-Dynamic intraday high-water mark trailing drawdown overlay for NinjaTrader 8 (`.cs`) and MetaTrader 5 (`.mq5`). 
+**TradeGuard Trailing Floor is a free, open-source (MIT) chart overlay for NinjaTrader 8, MetaTrader 5 and TradingView that plots a trailing drawdown floor under the price high-water mark, so prop-firm evaluation traders can see how much room is left before the trailing limit.**
 
-Built for evaluation traders (FundedNext, Topstep, Apex, Hola Prime) to visually track peak equity pullbacks and protect trailing loss buffers in real time.
+Made by **TradeGuard Systems** ([tradeguardsystems.com](https://tradeguardsystems.com)). Not affiliated with other products named "TradeGuard".
 
----
-
-### Master Calculation Matrix
-
-To calculate your allowable contracts and lot sizing backward against active trailing floors before entering a trade, download the complete 1-page printable reference sheet:
-
-👉 **[Download the Trailing Drawdown Defense Matrix (PDF)](https://tradeguardsystems.com)**
+| Platform | File | Language |
+|---|---|---|
+| NinjaTrader 8 | [`TradeGuardTrailingFloor.cs`](TradeGuardTrailingFloor.cs) | NinjaScript (C#) |
+| MetaTrader 5 | [`TradeGuardTrailingFloor.mq5`](TradeGuardTrailingFloor.mq5) | MQL5 |
+| TradingView | [`TradeGuardTrailingFloor.pine`](TradeGuardTrailingFloor.pine) | Pine Script v5 |
 
 ---
 
-### Key Capabilities
+## What it plots
 
-Most prop evaluations fail because intraday unrealized profit wicks ratchet the trailing floor upward tick-by-tick. When the market retraces, the allowable risk buffer has already shrunk.
+- **High-water mark (blue):** the highest price reached on the chart since the indicator started (or since the session began, on TradingView with daily reset on).
+- **Trailing floor (red):** the high-water mark minus your drawdown allowance, converted from dollars into price. It only moves up, never down.
 
-- **NinjaTrader 8:** Plots the dynamic Crimson Floor line and Blue High-Water Mark directly on futures charts (`TradeGuardTrailingFloor.cs`).
-- **MetaTrader 5:** Renders real-time pip and dollar drawdown thresholds on FX and index charts (`TradeGuardTrailingFloor.mq5`).
+### What it does *not* do
+
+The indicator is **price-based**. It follows the chart's high, not your broker account's equity, fills or realized P&L. It matches your account's trailing drawdown only when you hold a single **long** position of the configured size from the start of the tracking period. For short positions, multiple entries or account-level tracking, use your platform's or prop firm's account metrics.
 
 ---
 
-### Installation
+## How the floor is calculated
 
-#### NinjaTrader 8:
+```
+price buffer    = drawdown ($) / (dollar value per point × contracts)
+high-water mark = highest high so far
+floor           = max(previous floor, high-water mark − price buffer)
+```
+
+**Worked example (NQ, 1 contract, $2,000 trailing drawdown):**
+NQ is worth $20 per point, so the buffer is 2,000 / (20 × 1) = **100 points**. If NQ peaks at 20,150, the floor is 20,050. With 2 contracts the buffer halves to 50 points.
+
+### Sizing against the remaining buffer
+
+```
+max contracts = floor(remaining buffer ($) / (stop distance in points × dollar value per point))
+```
+
+| Remaining buffer | Instrument ($/pt) | Stop | Risk per contract | Max contracts |
+|---|---|---|---|---|
+| $1,500 | NQ ($20) | 20 pts | $400 | 3 |
+| $1,500 | MNQ ($2) | 20 pts | $40 | 37 |
+| $1,000 | ES ($50) | 8 pts | $400 | 2 |
+| $1,000 | MES ($5) | 8 pts | $40 | 25 |
+
+### Intraday vs. end-of-day trailing
+
+Prop firms differ in *when* the floor trails. Some update it intraday, tick by tick and including unrealized profit. Others update it only at the end-of-day balance. Rules also change over time, so check your firm's current rules page. This indicator trails intraday on every new high, which is the stricter case.
+
+---
+
+## Installation
+
+### NinjaTrader 8
 1. Download `TradeGuardTrailingFloor.cs`.
 2. Open NinjaTrader 8 > Tools > NinjaScript Editor.
-3. Import or paste the script into the `Indicators` directory and press `F5` to compile.
+3. Place the file in the `Indicators` folder and press `F5` to compile.
+4. Add it to a chart and set **Trailing Drawdown ($)**, **Tick Value ($)** (NQ default: $5 per 0.25 tick) and **Contracts**.
 
-#### MetaTrader 5:
+### MetaTrader 5
 1. Download `TradeGuardTrailingFloor.mq5`.
-2. Open MT5 > File > Open Data Folder > `MQL5` > `Indicators`.
-3. Paste the file, restart or refresh the Navigator panel in MT5, and drag it onto your chart.
+2. Open MT5 > File > Open Data Folder > `MQL5` > `Indicators` and paste the file.
+3. Open it in MetaEditor and compile (`F7`), or right-click Navigator > Refresh.
+4. Attach it to a chart and set **Trailing Drawdown ($)** and **Position Size (lots)**. **Tick Value** defaults to 0, which reads the symbol's own tick value from the broker.
 
----
-
-### License & Support
-
-Free and open-source utility provided by **TradeGuard Systems** (`tradeguardsystems.com`).  
-Direct inquiries: `director@tradeguardsystems.com`
----
-
-### Installation & Deployment
-
-#### TradingView (Pine Script v5):
-1. Open `TradeGuardTrailingFloor.pine` above and copy the script.
-2. In TradingView, open **Pine Editor** (`Alt + E` or bottom panel).
+### TradingView (Pine Script v5)
+1. Open `TradeGuardTrailingFloor.pine` and copy the script.
+2. In TradingView, open **Pine Editor** (`Alt + E`).
 3. Paste the code and click **Add to chart**.
-
-#### NinjaTrader 8:
-1. Download `TradeGuardTrailingFloor.cs`.
-2. Open NinjaTrader 8 > Tools > NinjaScript Editor.
-3. Import into the `Indicators` directory and press `F5` to compile.
-
-#### MetaTrader 5:
-1. Download `TradeGuardTrailingFloor.mq5`.
-2. Open MT5 > File > Open Data Folder > `MQL5` > `Indicators`.
-3. Paste the file, right-click Navigator > Refresh, and attach to your chart.
+4. Set **Dollar Value per 1.0 Price Point** for your instrument (NQ = 20, MNQ = 2, ES = 50, MES = 5) and your position size.
 
 ---
 
-### Resources & Direct Access
-Free utility from **TradeGuard Systems** (`https://tradeguardsystems.com`).  
-Direct inquiries: `director@tradeguardsystems.com`
+## License & support
+
+Released under the [MIT License](LICENSE). Provided as is. It is a visual aid, not a guarantee against breaching any firm's rules.
+
+Guides and resources: [tradeguardsystems.com](https://tradeguardsystems.com)
+Contact: `director@tradeguardsystems.com`
