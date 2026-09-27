@@ -3,8 +3,9 @@ indicator("TradeGuard Trailing Floor & Account Shield", overlay=true)
 
 // User Inputs
 drawdown_buffer = input.float(2000.0, title="Trailing Drawdown Buffer ($)")
-tick_value      = input.float(5.0, title="Point/Tick Dollar Value ($)")
+tick_value      = input.float(1.0, title="Point/Tick Dollar Value ($)")
 contract_size   = input.float(1.0, title="Position Contracts / Lots")
+reset_daily     = input.bool(true, title="Reset Anchor Each Session/Day")
 
 // State Tracking
 var float high_water_mark = na
@@ -13,7 +14,10 @@ var float trailing_floor   = na
 // Dollar buffer conversion to chart price points
 buffer_points = (drawdown_buffer / (tick_value * contract_size))
 
-if barstate.isfirst
+// Session boundary check (Daily reset)
+is_new_session = reset_daily and ta.change(time("D")) != 0
+
+if barstate.isfirst or is_new_session
     high_water_mark := high
     trailing_floor   := high - buffer_points
 else
