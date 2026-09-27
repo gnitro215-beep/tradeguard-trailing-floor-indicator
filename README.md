@@ -16,7 +16,7 @@ Made by **TradeGuard Systems** ([tradeguardsystems.com](https://tradeguardsystem
 
 - **High-water mark (blue):** the highest price reached on the chart since the indicator started (or since the session began, on TradingView with daily reset on).
 - **Trailing floor (red):** the high-water mark minus your drawdown allowance, converted from dollars into price. It only moves up, never down.
-- **Breach shading and alert (TradingView):** the background turns red while price closes below the floor, and a "Price crossed below TradeGuard floor" alert condition is available. On non-futures charts a reminder asks you to set the dollar value per point for that symbol.
+- **Breach shading and alert (TradingView):** the background turns red while price closes below the floor, and a "Price crossed below TradeGuard floor" alert condition is available. On non-futures charts a note shows the point value in use and reminds you that position size is in units (e.g. 0.1 BTC).
 
 ### What it does *not* do
 
@@ -72,7 +72,7 @@ Prop firms differ in *when* the floor trails. Some update it intraday, tick by t
 1. Open `TradeGuardTrailingFloor.pine` and copy the script.
 2. In TradingView, open **Pine Editor** (`Alt + E`).
 3. Paste the code and click **Add to chart**.
-4. Set **Dollar Value per 1.0 Price Point** for your instrument (NQ = 20, MNQ = 2, ES = 50, MES = 5) and your position size.
+4. Set **Trailing Drawdown Buffer ($)** and **Position Contracts / Lots**. **Auto-detect Point Value** is on by default and reads the symbol's value per point (NQ = 20, MNQ = 2, ES = 50, 1 BTC = 1). Turn it off to enter the value manually.
 
 ---
 

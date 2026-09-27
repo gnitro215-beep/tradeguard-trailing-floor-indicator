@@ -3,7 +3,8 @@ indicator("TradeGuard Trailing Floor & Account Shield", overlay=true)
 
 // User Inputs
 drawdown_buffer = input.float(2000.0, title="Trailing Drawdown Buffer ($)")
-tick_value      = input.float(20.0, title="Dollar Value per 1.0 Price Point ($)", tooltip="Per contract/lot. NQ = 20, MNQ = 2, ES = 50, MES = 5")
+auto_point      = input.bool(true, title="Auto-detect Point Value", tooltip="Uses the symbol's own value per 1.0 price point for one contract/unit (NQ = 20, MNQ = 2, ES = 50, 1 BTC = 1). Turn off to enter it manually.")
+manual_point    = input.float(20.0, title="Manual Dollar Value per 1.0 Price Point ($)", tooltip="Used only when auto-detect is off. Per contract/lot. NQ = 20, MNQ = 2, ES = 50, MES = 5")
 contract_size   = input.float(1.0, title="Position Contracts / Lots")
 reset_daily     = input.bool(true, title="Reset Anchor Each Session/Day")
 
@@ -12,7 +13,8 @@ var float high_water_mark = na
 var float trailing_floor   = na
 
 // Dollar buffer conversion to chart price points
-buffer_points = (drawdown_buffer / (tick_value * contract_size))
+point_value   = auto_point and syminfo.pointvalue > 0 ? syminfo.pointvalue : manual_point
+buffer_points = (drawdown_buffer / (point_value * contract_size))
 
 // Session boundary check (Daily reset)
 is_new_session = reset_daily and ta.change(time("D")) != 0
@@ -36,8 +38,8 @@ breached = close < trailing_floor
 bgcolor(breached ? color.new(color.red, 85) : na, title="Floor Breach Shading")
 alertcondition(ta.crossunder(close, trailing_floor), title="Price crossed below TradeGuard floor", message="{{ticker}} closed below the TradeGuard trailing floor")
 
-// Point value reminder on non-futures charts (defaults assume NQ at $20 per point)
-var table warn_table = table.new(position.bottom_right, 1, 1)
+// Point value note on non-futures charts, where position size is in units rather than contracts
+var table note_table = table.new(position.bottom_right, 1, 1)
 if barstate.islast and syminfo.type != "futures"
-    warn_text = "Not a futures chart: set 'Dollar Value per 1.0 Price Point' for " + syminfo.ticker + " (symbol point value: " + str.tostring(syminfo.pointvalue) + ")"
-    table.cell(warn_table, 0, 0, warn_text, text_color=color.white, bgcolor=color.new(color.orange, 20), text_size=size.small)
+    note_text = auto_point ? "Auto point value: " + str.tostring(point_value) + " " + syminfo.currency + " per 1.0 point per unit of " + syminfo.ticker + ". Set position size in units (e.g. 0.1 BTC)." : "Not a futures chart: check the manual point value for " + syminfo.ticker + " (symbol point value: " + str.tostring(syminfo.pointvalue) + ")"
+    table.cell(note_table, 0, 0, note_text, text_color=color.white, bgcolor=auto_point ? color.new(color.gray, 30) : color.new(color.orange, 20), text_size=size.small)
