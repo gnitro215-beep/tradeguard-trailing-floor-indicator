@@ -16,6 +16,7 @@ Made by **TradeGuard Systems** ([tradeguardsystems.com](https://tradeguardsystem
 
 - **High-water mark (blue):** the highest price reached on the chart since the indicator started (or since the session began, on TradingView with daily reset on).
 - **Trailing floor (red):** the high-water mark minus your drawdown allowance, converted from dollars into price. It only moves up, never down.
+- **Breach shading and alert (TradingView):** the background turns red while price closes below the floor, and a "Price crossed below TradeGuard floor" alert condition is available. On non-futures charts a reminder asks you to set the dollar value per point for that symbol.
 
 ### What it does *not* do
 

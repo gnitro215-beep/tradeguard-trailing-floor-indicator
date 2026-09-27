@@ -30,3 +30,14 @@ else
 // Plots
 plot(high_water_mark, title="High-Water Mark (Peak)", color=color.new(color.blue, 20), style=plot.style_circles, linewidth=1)
 plot(trailing_floor, title="TradeGuard Drawdown Floor", color=color.new(color.red, 0), style=plot.style_line, linewidth=2)
+
+// Floor breach: shade the chart and expose an alert
+breached = close < trailing_floor
+bgcolor(breached ? color.new(color.red, 85) : na, title="Floor Breach Shading")
+alertcondition(ta.crossunder(close, trailing_floor), title="Price crossed below TradeGuard floor", message="{{ticker}} closed below the TradeGuard trailing floor")
+
+// Point value reminder on non-futures charts (defaults assume NQ at $20 per point)
+var table warn_table = table.new(position.bottom_right, 1, 1)
+if barstate.islast and syminfo.type != "futures"
+    warn_text = "Not a futures chart: set 'Dollar Value per 1.0 Price Point' for " + syminfo.ticker + " (symbol point value: " + str.tostring(syminfo.pointvalue) + ")"
+    table.cell(warn_table, 0, 0, warn_text, text_color=color.white, bgcolor=color.new(color.orange, 20), text_size=size.small)
