@@ -1,0 +1,28 @@
+//@version=5
+indicator("TradeGuard Trailing Floor & Account Shield", overlay=true)
+
+// User Inputs
+drawdown_buffer = input.float(2000.0, title="Trailing Drawdown Buffer ($)")
+tick_value      = input.float(5.0, title="Point/Tick Dollar Value ($)")
+contract_size   = input.float(1.0, title="Position Contracts / Lots")
+
+// State Tracking
+var float high_water_mark = na
+var float trailing_floor   = na
+
+// Dollar buffer conversion to chart price points
+buffer_points = (drawdown_buffer / (tick_value * contract_size))
+
+if barstate.isfirst
+    high_water_mark := high
+    trailing_floor   := high - buffer_points
+else
+    if high > high_water_mark
+        high_water_mark := high
+        calc_floor = high_water_mark - buffer_points
+        if calc_floor > trailing_floor
+            trailing_floor := calc_floor
+
+// Plots
+plot(high_water_mark, title="High-Water Mark (Peak)", color=color.new(color.blue, 20), style=plot.style_circles, linewidth=1)
+plot(trailing_floor, title="TradeGuard Drawdown Floor", color=color.new(color.red, 0), style=plot.style_line, linewidth=2)
