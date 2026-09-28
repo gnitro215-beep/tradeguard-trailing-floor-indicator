@@ -2,7 +2,9 @@
 
 **TradeGuard Trailing Floor is a free, open-source (MIT) chart overlay for NinjaTrader 8, MetaTrader 5 and TradingView that plots a trailing drawdown floor under the price high-water mark, so prop-firm evaluation traders can see how much room is left before the trailing limit.**
 
-Made by **TradeGuard Systems** ([tradeguardsystems.com](https://tradeguardsystems.com)). Not affiliated with other products named "TradeGuard".
+Made by **TradeGuard Systems** ([tradeguardsystems.com](https://tradeguardsystems.com)), operated by Sovereign Holding Co. Not affiliated with other products named "TradeGuard".
+
+Free tools: [Trailing Drawdown & Position Sizing Calculator](https://tradeguardsystems.com/calculator.html) · [Capital Protection Blueprint (PDF)](https://tradeguardsystems.com/capital-protection-blueprint.pdf)
 
 | Platform | File | Language |
 |---|---|---|
@@ -78,7 +80,9 @@ Prop firms differ in *when* the floor trails. Some update it intraday, tick by t
 
 ## License & support
 
-Released under the [MIT License](LICENSE). Provided as is. It is a visual aid, not a guarantee against breaching any firm's rules.
+The TradeGuard Trailing Floor indicators are open-source software released under the [MIT License](LICENSE), © 2026 Sovereign Holding Co. Provided as is. They are a visual aid, not a guarantee against breaching any firm's rules.
+
+The Capital Protection Blueprint and other TradeGuard Systems educational material are proprietary publications of Sovereign Holding Co. and are not covered by the MIT License.
 
 Guides and resources: [tradeguardsystems.com](https://tradeguardsystems.com)
 Contact: `director@tradeguardsystems.com`
