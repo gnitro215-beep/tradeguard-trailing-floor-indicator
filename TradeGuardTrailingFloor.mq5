@@ -2,7 +2,7 @@
 //|                                       TradeGuardTrailingFloor.mq5 |
 //|                  TradeGuard Systems - https://tradeguardsystems.com |
 //+------------------------------------------------------------------+
-#property copyright   "TradeGuard Systems"
+#property copyright   "Copyright 2026, Sovereign Holding Co."
 #property link        "https://tradeguardsystems.com"
 #property version     "1.00"
 #property description "Price-based trailing drawdown floor: tracks the chart's high-water mark and plots the floor a fixed dollar distance below it."
